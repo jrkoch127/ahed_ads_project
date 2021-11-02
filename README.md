@@ -159,7 +159,7 @@ import argparse
 import json
 
 # ADS Prod API Token
-token = '<my token here>
+token = '<my token here>'
 domain = 'https://api.adsabs.harvard.edu/v1/'
 
 ## REFERENCE SERVICE ##
