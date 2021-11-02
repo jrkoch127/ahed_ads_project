@@ -12,7 +12,8 @@ In this blog post I intend to outline the goals I established, the steps I took 
 ### Project Background and Goals
 The resources used in this project include an excel spreadsheet provided of AHED’s bibliographic holdings (with metadata for Authors, Org code, Title, Journal information, and DOI if available), which was split up into three sheets by Branch (Astrophysics Branch, the Planetary Systems Branch, and the Exobiology Branch). The main overall goal was to match each publication with an ADS bibcode if it exists. In order to accomplish this, my team recommended I use the ADS API to match based on DOIs, then reference strings, and then fill in the rest by Title. I split up my overall goal into three major phases: DOI, Reference Strings, and Title. Each of these phases I created a new Jupyter Notebook and outlined the sub-goals.
 
-### Goal 1 (Notebook 1): Match AHED to ADS Items by DOI
+## Goal 1 (Notebook 1): Match AHED to ADS Items by DOI
+
 Create a version of the AHED spreadsheet that has a column "bibcode" added to the right of the DOI column. For those publications we are able to match to ADS records, this column will list these bibcodes, otherwise "NA".
 
 <b>Notebook # 1 Outline:</b>
@@ -67,8 +68,7 @@ print("Original paper list has", len(ahed_doi_list), "DOIs to search.")
   <b>Step 3: API Connection & Query</b>
   
 Ready to search the ADS API with 177 DOIs, I established the API connection and queried my DOIs, returning the bibcodes and DOIs matched of ADS' holdings. At first, I established a basic DOI input query, where I joined all 177 DOIs in a single string, joined by 'OR' so that the ADS API would search them all at once. This worked, however it was not the most efficient due to a character limit in the q/query. In collaboration with my team, I was able to formulate a loop through my DOI list and append the response bibcodes and DOIs to a new list ('data = []').
-  
-  
+
 ```python
 import requests
 import json
@@ -113,11 +113,137 @@ After the API connection successfully matched 155 existing bibcodes to the DOIs 
 # Merge/Join new table to original, joined on 'DOI'
 merged = ahed_pubs_refined.merge(dois_matched, on='DOI', how='left')
 
-# Count my running total of bibcodes matched
-# merged = merged.dropna(subset=['BIBCODE'])
-
 # Export merged data
 merged.to_excel("AHED/dois_matched.xlsx",
                   index=False)
 ```
+
+## Goal 2 (Notebook 2): Match AHED to ADS Items by Reference Strings
+
+My next goal was to match additional papers (without DOIs matched) by reference strings with ADS' Reference Service. The ADS Reference Service is an API endpoint that can take a query string of authors and/or journal info (publication name, volume, issue, year) and return the bibcode. 
+
+<b>Notebook #2 Outline:</b>
+<li>Step 1: Format file of papers into reference strings
+<li>Step 2: Query the Reference API with reference strings, return bibcodes
+<li>Step 3: Match the bibcodes back to the paper list
+
+<b>Step 1: Format Reference List</b>
   
+First I needed to prep the reference strings. In Goal 1/Notebook 1, I had transformed the data in OpenRefine to normalize the journal titles, volume numbers, and issue/id numbers. The Reference Service takes strings in the following format: [authors],[publication year],[journal name, vol, issue numbers]. So I started by making a new column, joining these metadata together and exporting the column/list to a text file.
+
+```python
+import pandas as pd
+import numpy as np
+
+# Open my excel sheet as a data frame
+df = pd.read_excel("AHED/dois_matched.xlsx")
+
+# String together the fields into single reference strings (Authors, Year, Journal)
+df['REFS'] = df['AUTHORS'].astype(str) + ', ' + df['YEAR'].astype(str) + ', ' + df['JOURNAL'].astype(str)
+
+# Grab only rows where DOI is null
+dt = df[df['DOI'].isna()]
+
+# Export my reference strings to text file
+dt['REFS'].to_csv("AHED/ref_list.txt", index=False, header=False, sep='\t')
+```
+
+<b>Step 2: Connect to Reference Service API</b>
+
+The next step was to input my reference list to the API, and return the matching bibcodes.
+
+```python
+import sys, os, io
+import requests
+import argparse
+import json
+
+# ADS Prod API Token
+token = '<my token here>
+domain = 'https://api.adsabs.harvard.edu/v1/'
+
+## REFERENCE SERVICE ##
+
+# --- Function to read my reference strings file and make a list called 'references'
+def read_file(filename):
+
+    references = []
+    with open(filename, "r") as f:
+        for line in f:
+            references.append(line)
+    return references
+
+# --- Function to connect to Reference Service API, querying my 'references' list
+def resolve(references):
+    
+    payload = {'reference': references}
+
+    response = requests.post(
+        url = domain + 'reference/text',
+        headers = {'Authorization': 'Bearer ' + token,
+                 'Content-Type': 'application/json',
+                 'Accept':'application/json'},
+        data = json.dumps(payload)
+    )
+    
+    if response.status_code == 200:
+        return json.loads(response.content)['resolved'], 200
+    else:
+        print('From reference status_code is ', response.status_code)
+    return None, response.status_code
+```
+
+```python
+# Read my reference strings file
+references = read_file("/Users/sao/Documents/Python-Projects/AHED/ref_list.txt")
+references = [ref.replace('\n','') for ref in references]
+
+# Resolve my references, results in 'total results' list
+total_results = []
+
+for i in range(0, len(references), 16):
+    results, status = resolve(references[i:i+16])
+    if results:
+        total_results += results
+
+# Method to count how many total bibcodes were matched
+bibcodes = []
+for record in total_results:
+    if record['bibcode']!='...................':
+        bibcodes.append(record['bibcode'])
+
+print('Matched',len(bibcodes),'bibcodes')
+```
+
+    Matched 385 bibcodes
+
+<b>Step 3: Match Bibcode/Reference Response Data to Original Paper List</b>
+
+After the API successfully found 385 bibcodes from the rest of the paper list (~650 papers), my next step was to match these back to the original AHED paper list and include as bibcodes matched thus far.
+  
+```python
+# Convert my reference results to a data frame and drop null values
+ref_results = pd.DataFrame(total_results)
+ref_results = ref_results.replace('...................', np.nan)
+ref_results = ref_results.dropna(subset=['bibcode'])
+
+# Merge my new ref service results with my original paper list, join by the refstrings
+merged = pd.merge(df, ref_results, how='left', left_on='REFS', right_on='refstring')
+merged
+
+# Combine bibcode columns, bringing new bibcode column over to the existing bibcode column
+merged['BIBCODE'] = merged['BIBCODE'].fillna(merged['bibcode'])
+
+# Cleanup; drop unneeded columns
+merged = merged.drop('refstring',axis=1)
+merged = merged.drop('REFS',axis=1)
+merged = merged.drop('bibcode',axis=1)
+merged = merged.drop('score',axis=1)
+merged = merged.drop('comment',axis=1)
+
+# Clean up nulls
+merged = merged.replace(np.nan,'NA')
+
+# Export merged data to new excel file
+merged.to_excel("AHED/refs_matched.xlsx", index=False)
+```
