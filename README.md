@@ -215,11 +215,11 @@ for record in total_results:
 print('Matched',len(bibcodes),'bibcodes')
 ```
 
-    Matched 385 bibcodes
+    Matched 397 bibcodes
 
 <b>Step 3: Match Bibcode/Reference Response Data to Original Paper List</b>
 
-After the API successfully found 385 bibcodes from the rest of the paper list (~650 papers), my next step was to match these back to the original AHED paper list and include as bibcodes matched thus far.
+After the API successfully found 397 bibcodes from the rest of the paper list (~650 papers), my next step was to match these back to the original AHED paper list and include as bibcodes matched thus far.
   
 ```python
 # Convert my reference results to a data frame and drop null values
@@ -247,3 +247,120 @@ merged = merged.replace(np.nan,'NA')
 # Export merged data to new excel file
 merged.to_excel("AHED/refs_matched.xlsx", index=False)
 ```
+Now at a running total of approx 550 items matched, my last goal was to match any additional items I could find by Title.
+
+## Goal 3 (Notebook 3): Match AHED to ADS Items by Title
+
+My next goal was to match additional papers (without DOIs matched, nor reference strings matched) this time by Title via the ADS API. I chose to include the publication year in my query to hopefully match the most accurate results.
+
+<b>Notebook #3 Outline:</b>
+<li>Step 1: Format titles to query the ADS API
+<li>Step 2: Query the ADS API with titles, return bibcodes
+<li>Step 3: Match the bibcodes back to the paper list
+
+<b>Step 1: Format Titles List</b>
+  
+From here I grabbed my running list of papers ('refs_matched' from Goal 2), isolated the rows that have no bibcode yet, and formulate query strings of Title + Year.
+  
+```python
+import pandas as pd
+import numpy as np
+
+# Open my excel sheet as a data frame
+df = pd.read_excel("AHED/refs_matched.xlsx")
+
+# Grab only rows where bibcode is null
+dt = df[df['BIBCODE'].isna()]
+
+# Create title & year query strings
+dt['QUERY'] = ('(title: "' + dt['TITLE'].astype(str) + '" AND year:' + dt['YEAR'].astype(str) + ')')
+
+# Format query list
+titles = dt['QUERY'].to_list()
+```
+  
+<b>Step 2: API Connection & Query</b>
+  
+With my Titles ready to query, I set up the API connection, and queried the list in chunks of 25 since there were ~250 items to input, and the API could only take so many at a time. From the ADS API response, I created a new data frame with the bibcodes and titles returned.
+
+```python
+# This loops through the titles list in chunks of 25 titles, querying the API, 
+# returning bibcodes and titles matched, and then appending the results as a data frame.
+
+import requests
+import json
+
+# --- API REQUEST --- 
+token = "<my token here>"
+url = "https://api.adsabs.harvard.edu/v1/search/query?"
+
+data=[]
+
+for i in range(0, len(titles), 25):
+    chunk = titles[i:i + 25]
+    tagged = [t for t in chunk]
+    query = ' OR '.join(tagged)
+    
+    params = {"q":query,"fl":"title,bibcode","rows":200}
+    headers = {'Authorization': 'Bearer ' + token}
+    response = requests.get(url, params=params, headers=headers)
+#     print(data.text, '\n')
+
+    from_solr = response.json()
+    if (from_solr.get('response')):
+        num_docs = from_solr['response'].get('numFound', 0)
+        if num_docs > 0:
+            for doc in from_solr['response']['docs']:
+                data.append((doc['bibcode'],doc['title'][0]))
+#     print(data)
+
+titles_matched = pd.DataFrame(data, columns = ['bibcode','TITLE'])
+
+```
+<b>Step 3: Match Bibcode/Title Response Data to Original Paper List</b>
+  
+Finally, I was able to merge the new titles & bibcodes to my running list of matches ('refs_matched')
+  
+```python
+# Merge/Join new table to original, joined on 'TITLE'
+merged = df.merge(titles_matched, on='TITLE', how='left')
+
+# Combine bibcode columns
+merged['BIBCODE'] = merged['BIBCODE'].fillna(merged['bibcode'])
+merged = merged.drop('bibcode',axis=1)
+
+# Clean up nulls
+merged = merged.replace(np.nan,'NA')
+
+# Export merged data to new excel file
+merged.to_excel("AHED/final_matched_2.xlsx", index=False)
+```
+With this merge, my total came up to about 692 items matched out of a potential 797. After some analysis of what was left unmatched, I found quite a few discrepancies in the 'Year' metadata, as well as 'Title' mismatches (i.e. typos in the metadata, titles changed during publication, etc.) so when I searched again by Title alone, I ended up finding an additional ~40 or so papers that matched ADS holdings, bringing my final total to 731 items.
+
+## Curating missing items, and creating ADS Libraries
+  
+After successfully identifying as many bibcodes as I could match between AHED and ADS, I grabbed my full list of bibcodes and I made an ADS Library of them, which can be accessed [here](https://ui.adsabs.harvard.edu/user/libraries/1gM2Y7nVSv-POu2lanjJ6g). 
+  
+```python
+import requests
+import json
+
+# --- API REQUEST --- 
+token = "<my token here>"
+url = "https://api.adsabs.harvard.edu/v1/biblib/libraries"
+    
+data = { 
+    "name":"AHED Library",
+    "description":"Library of records ADS matches of AHED holdings",
+    "public": True,
+    "bibcode": bibs
+}
+headers = {'Authorization': 'Bearer ' + token}
+response = requests.post(url, data=json.dumps(data), headers=headers)
+
+print(response.status_code)
+```
+
+    200
+ 
+My final task for this project was to identify, locate, and curate the ~70 records AHED holds and are missing from the ADS holdings. This was a manual process of searching the web with the metadata provided, locating the applicable DOI, and curating ADS records from there. I was able to identify and locate approximately 54 publications, plus records for individual chapters for two I identified as books. As a result, the ADS team ingested these new records and I again created a library of those, which can be found [here](https://ui.adsabs.harvard.edu/user/libraries/HkCPGwYhSSWpzvJW_gxd3w).
