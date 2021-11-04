@@ -17,12 +17,12 @@ The source data used in this project was an excel spreadsheet provided of AHEDâ€
 <img width="1004" alt="Screen Shot 2021-11-04 at 11 44 23 AM" src="https://user-images.githubusercontent.com/31739067/140366721-e2721366-94d7-4651-a06d-17e7a10483e4.png"> 
 
 The main overall goal was to match each publication with an ADS bibcode if it exists. In order to accomplish this, my team recommended I use the ADS API to match based on DOIs (for those proivded), then reference strings, and then fill in the rest by Title. I split up my overall goal into four major tasks, and for each of these phases I created a new Jupyter Notebook and outlined the steps.
-1. [(Notebook 1): Match AHED to ADS Items by DOI](#-match-by-doi)
+1. [(Notebook 1): Match AHED to ADS Items by DOI](#match-by-doi)
 2. (Notebook 2): Match AHED to ADS Items by Reference Strings
 3. (Notebook 3): Match AHED to ADS Items by Title
 4. (Notebook 4): Curate missing items and create ADS Libraries
 
-## [Task 1 (Notebook 1): Match AHED to ADS Items by DOI](#-match-by-doi)
+## <a name="match-by-doi">Task 1 (Notebook 1): Match AHED to ADS Items by DOI</a>
 
 Create a version of the AHED spreadsheet that has a column "bibcode" added to the right of the DOI column. For those publications we are able to match to ADS records, this column will list these bibcodes, otherwise "NA".
 
