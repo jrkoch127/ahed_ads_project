@@ -18,9 +18,9 @@ The source data used in this project was an excel spreadsheet provided of AHEDâ€
 
 The main overall goal was to match each publication with an ADS bibcode if it exists. In order to accomplish this, my team recommended I use the ADS API to match based on DOIs (for those proivded), then reference strings, and then fill in the rest by Title. I split up my overall goal into four major tasks, and for each of these phases I created a new Jupyter Notebook and outlined the steps.
 1. [(Notebook 1): Match AHED to ADS Items by DOI](#match-by-doi)
-2. (Notebook 2): Match AHED to ADS Items by Reference Strings
-3. (Notebook 3): Match AHED to ADS Items by Title
-4. (Notebook 4): Curate missing items and create ADS Libraries
+2. [(Notebook 2): Match AHED to ADS Items by Reference Strings](#match-by-ref)
+3. [(Notebook 3): Match AHED to ADS Items by Title](#match-by-title)
+4. [(Notebook 4): Curate missing items and create ADS Libraries](#ads-libs)
 
 ## <a name="match-by-doi">Task 1 (Notebook 1): Match AHED to ADS Items by DOI</a>
 
@@ -127,7 +127,7 @@ merged.to_excel("AHED/dois_matched.xlsx",
                   index=False)
 ```
 
-## Goal 2 (Notebook 2): Match AHED to ADS Items by Reference Strings
+  ## <a name="match-by-ref">Goal 2 (Notebook 2): Match AHED to ADS Items by Reference Strings</a>
 
 My next goal was to match additional papers (without DOIs matched) by reference strings with ADS' Reference Service. The ADS Reference Service is an API endpoint that can take a query string of authors and/or journal info (publication name, volume, issue, year) and return the bibcode. 
 
@@ -258,7 +258,7 @@ merged.to_excel("AHED/refs_matched.xlsx", index=False)
 ```
 Now at a running total of approx 550 items matched, my last goal was to match any additional items I could find by Title.
 
-## Goal 3 (Notebook 3): Match AHED to ADS Items by Title
+  ## <a name="match-by-title">Goal 3 (Notebook 3): Match AHED to ADS Items by Title</a>
 
 My next goal was to match additional papers (without DOIs matched, nor reference strings matched) this time by Title via the ADS API. I chose to include the publication year in my query to hopefully match the most accurate results.
 
@@ -346,7 +346,7 @@ merged.to_excel("AHED/final_matched_2.xlsx", index=False)
 ```
 With this merge, my total came up to about 692 items matched out of a potential 797. After some analysis of what was left unmatched, I found quite a few discrepancies in the 'Year' metadata, as well as 'Title' mismatches (i.e. typos in the metadata, titles changed during publication, etc.) so when I searched again by Title alone, I ended up finding an additional ~40 or so papers that matched ADS holdings, bringing my final total to 731 items.
 
-## Goal 4 (Notebook 4): Curate missing items and create ADS Libraries
+  ## <a name="ads-libs">Goal 4 (Notebook 4): Curate missing items and create ADS Libraries</a>
 
 After successfully identifying as many bibcodes as I could match between AHED and ADS, I grabbed my full list of bibcodes and I made another ADS Library of them, which can be accessed [here](https://ui.adsabs.harvard.edu/user/libraries/1gM2Y7nVSv-POu2lanjJ6g). 
   
