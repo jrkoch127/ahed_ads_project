@@ -7,7 +7,7 @@ In the context of the recently announced ADS Expansion Project, ADS seeks to bro
 
 As a recent addition to the ADS Team supporting curation efforts and assisting in collection management, this appealed to my interests as I have recently begun honing my Python skills, and learning new tools such as Jupyter Notebook and OpenRefine. Jupyter Notebook is especially useful for new Python users because it helps break up scripts into more manageable blocks (cells) and I can include my notes, findings, and documentation along the way. 
 
-In this write-up I intend to outline the goals I established, the steps I took to accomplish them, and lessons learned. To accomplish this project, I used a combination of my own knowledge and expertise, I read API Documentation, searched online for solutions as needed, and I also collaborated with team members to debug and learn the ins and outs of the ADS API.
+In this documentation I intend to outline the goals I established, the steps I took to accomplish them, and lessons learned. To accomplish this project, I used a combination of my own knowledge and expertise, I read API Documentation, searched online for solutions as needed, and I also collaborated with team members to debug and learn the ins and outs of the ADS API.
 
 ### Project Outline and Goals
 The source data used in this project was an excel spreadsheet provided of AHED’s bibliographic holdings (with metadata for Authors, Org code, Title, Journal information, and DOI if available), which was split up into three sheets by Branch (Astrophysics Branch, the Planetary Systems Branch, and the Exobiology Branch). 
