@@ -27,12 +27,12 @@ The main overall goal was to match each publication with an ADS bibcode if it ex
 Create a version of the AHED spreadsheet that has a column "bibcode" added to the right of the DOI column. For those publications we are able to match to ADS records, this column will list these bibcodes, otherwise "NA".
 
 <b>Notebook 1 Outline:</b>
-<li>Step 1: Data Cleanup and Prep - combine all the excel sheets to one data set
-<li>Step 2: Isolate/create list of DOIs
-<li>Step 3: API Connection & Query
-<li>Step 4: Match list of bibcodes to original data set
+<li>Step 1.1: Data Cleanup and Prep - combine all the excel sheets to one data set
+<li>Step 1.2: Isolate/create list of DOIs
+<li>Step 1.3: API Connection & Query
+<li>Step 1.4: Match list of bibcodes to original data set
 
-<b>Step 1: Data Cleanup and Prep</b>
+<b>Step 1.1: Data Cleanup and Prep</b>
   
 After opening up a Jupyter notebook, I began by loading the excel spreadsheets and merging them as one comprehensive data frame. I decided this would be easier to handle and more efficient for getting results.
   
@@ -55,7 +55,7 @@ After creating a single data frame, I assessed the data provided and chose to us
 
 Using OpenRefine, I was able to transform the journal data; normalizing publication titles, volume and issue numbers, and standardizing formatting. I even found additional DOIs that were misrepresented in the Journal field and moved them to the DOI field. In addition, I made transformations such as trimming whitespace, fixing typos as I caught them, simplifying column headers, and removing duplicate entries. The transformation and deduplication process narrowed down the AHED paper list from 892 to 797 items.
 
-  <b>Step 2: Isolate the list of DOIs</b>
+  <b>Step 1.2: Isolate the list of DOIs</b>
   
 With my cleaned up data, I imported the new excel file and isolated all the existing DOIs to prep for querying them in the ADS API.
   
@@ -74,7 +74,7 @@ print("Original paper list has", len(ahed_doi_list), "DOIs to search.")
 
     Original paper list has 177 DOIs to search.
 
-  <b>Step 3: API Connection & Query</b>
+  <b>Step 1.3: API Connection & Query</b>
   
 Ready to search the ADS API with 177 DOIs, I established the API connection and queried my DOIs, returning the bibcodes and DOIs matched of ADS' holdings. At first, I established a basic DOI input query, where I joined all 177 DOIs in a single string, joined by 'OR' so that the ADS API would search them all at once. This worked, however it was not the most efficient due to a character limit in the q/query. In collaboration with my team, I was able to formulate a loop through my DOI list and append the response bibcodes and DOIs to a new list ('data = []').
 
@@ -114,7 +114,7 @@ dois_matched.to_excel("AHED/dois_matched.xlsx",
                   index=False)
 ```
   
-  <b>Step 4: Match Bibcode/DOI Response Data to Original Paper List</b>
+  <b>Step 1.4: Match Bibcode/DOI Response Data to Original Paper List</b>
  
 After the API connection successfully matched 155 existing bibcodes to the DOIs queried, my new step was to join these bibcodes on the DOIs in the AHED paper list. I joined the new data set (consisting of two columns, 'DOI' and 'BIBCODE') to the old as a left join on 'DOI'.
 
@@ -132,11 +132,11 @@ merged.to_excel("AHED/dois_matched.xlsx",
 My next goal was to match additional papers (without DOIs matched) by reference strings with ADS' Reference Service. The ADS Reference Service is an API endpoint that can take a query string of authors and/or journal info (publication name, volume, issue, year) and return the bibcode. 
 
 <b>Notebook 2 Outline:</b>
-<li>Step 1: Format file of papers into reference strings
-<li>Step 2: Query the Reference API with reference strings, return bibcodes
-<li>Step 3: Match the bibcodes back to the paper list
+<li>Step 2.1: Format file of papers into reference strings
+<li>Step 2.2: Query the Reference API with reference strings, return bibcodes
+<li>Step 2.3: Match the bibcodes back to the paper list
 
-<b>Step 1: Format Reference List</b>
+<b>Step 2.1: Format Reference List</b>
   
 First I needed to prep the reference strings. In Goal 1/Notebook 1, I had transformed the data in OpenRefine to normalize the journal titles, volume numbers, and issue/id numbers. The Reference Service takes strings in the following format: [authors],[publication year],[journal name, vol, issue numbers]. So I started by making a new column, joining these metadata together and exporting the column/list to a text file.
 
@@ -157,7 +157,7 @@ dt = df[df['DOI'].isna()]
 dt['REFS'].to_csv("AHED/ref_list.txt", index=False, header=False, sep='\t')
 ```
 
-<b>Step 2: Connect to Reference Service API</b>
+<b>Step 2.2: Connect to Reference Service API</b>
 
 The next step was to input my reference list to the API, and return the matching bibcodes.
 
@@ -226,7 +226,7 @@ print('Matched',len(bibcodes),'bibcodes')
 
     Matched 397 bibcodes
 
-<b>Step 3: Match Bibcode/Reference Response Data to Original Paper List</b>
+<b>Step 2.3: Match Bibcode/Reference Response Data to Original Paper List</b>
 
 After the API successfully found 397 bibcodes from the rest of the paper list (~650 papers), my next step was to match these back to the original AHED paper list and include as bibcodes matched thus far.
   
@@ -263,11 +263,11 @@ Now at a running total of approx 550 items matched, my last goal was to match an
 My next goal was to match additional papers (without DOIs matched, nor reference strings matched) this time by Title via the ADS API. I chose to include the publication year in my query to hopefully match the most accurate results.
 
 <b>Notebook 3 Outline:</b>
-<li>Step 1: Format titles to query the ADS API
-<li>Step 2: Query the ADS API with titles, return bibcodes
-<li>Step 3: Match the bibcodes back to the paper list
+<li>Step 3.1: Format titles to query the ADS API
+<li>Step 3.2: Query the ADS API with titles, return bibcodes
+<li>Step 3.3: Match the bibcodes back to the paper list
 
-<b>Step 1: Format Titles List</b>
+<b>Step 3.1: Format Titles List</b>
   
 From here I grabbed my running list of papers ('refs_matched' from Goal 2), isolated the rows that have no bibcode yet, and formulate query strings of Title + Year.
   
@@ -288,7 +288,7 @@ dt['QUERY'] = ('(title: "' + dt['TITLE'].astype(str) + '" AND year:' + dt['YEAR'
 titles = dt['QUERY'].to_list()
 ```
   
-<b>Step 2: API Connection & Query</b>
+<b>Step 3.2: API Connection & Query</b>
   
 With my Titles ready to query, I set up the API connection, and queried the list in chunks of 25 since there were ~250 items to input, and the API could only take so many at a time. From the ADS API response, I created a new data frame with the bibcodes and titles returned.
 
@@ -326,7 +326,7 @@ for i in range(0, len(titles), 25):
 titles_matched = pd.DataFrame(data, columns = ['bibcode','TITLE'])
 
 ```
-<b>Step 3: Match Bibcode/Title Response Data to Original Paper List</b>
+<b>Step 3.3: Match Bibcode/Title Response Data to Original Paper List</b>
   
 Finally, I was able to merge the new titles & bibcodes to my running list of matches ('refs_matched')
   
