@@ -373,7 +373,14 @@ print(response.status_code)
 ```
 
     200
- 
+
+## Lessons Learned
+- Using OpenRefine to do the bulk of your data prep and cleanup was a great advantage
+- Try to save fewer files; Exporting/importing new csvs/files with small tweeks can disrupt the flow of the script and create a bunch of extra files that will clutter your documents.
+- Look for more Python ways of measuring my progress - how many bibcodes matched, counting duplicates vs non-duplicates
+- Look for ways to measure accuracy of bibcode matching - use 'score' field in ADS API.
+- Practice using loops and functions for greater efficiency
+
 ## Results and Conclusions
 
-Overall, I was able to match the majority (about 92%) of publications from the AHED list to bibcodes in ADS. Only a handful of records needed to be further searched and curated for inclusion in the collections. The ADS API was impressively accurate in returning appropriate bibcodes with each task I completed. There were even times when I thought ADS had matched the wrong bibcode, until further investigation showed me that the metadata was wrong or incomplete (title, journal, or year differences). This project was an excellent way to put my Python, data, and librarianship skills into practice, and to get acquainted with all of ADS' API services.
+Overall, I was able to match the majority (about 92%) of publications from the AHED list to bibcodes in ADS. Only a handful of records needed to be further searched and curated for inclusion in the collections. The ADS API was impressively accurate in returning appropriate bibcodes with each task I completed. There were even times when I thought ADS had matched the wrong bibcode, until further investigation showed me that the metadata was poor or incomplete (title, journal, or year differences). This project was an excellent way to put my Python, data, and librarianship skills into practice, and to get acquainted with all of ADS' API services.
