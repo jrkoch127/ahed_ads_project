@@ -3,20 +3,23 @@ Includes documentation, Jupyter notebooks and files for AHED-ADS Project of matc
 
 ## Identifying ADS Bibliographic Gaps Against NASA Astrobiology Habitable Environments Database (AHED)
 
-In the context of the recently announced ADS Expansion Project, ADS seeks to broaden the collections’ bibliographic coverage to include Planetary Science, Heliophysics, and Earth Sciences. In collaboration with NASA’s Astrobiology Habitable Environments Database (AHED), this project was completed to assess the bibliographic holdings of AHED, identify those that have already been included in ADS’s holdings, flag those that are not yet included, and finally curate records and ingest those missing into ADS. This is one example of ADS’s goal to form collaborations with partners and expand access to scientific data and literature.
+Recently NASA has asked the Astrophysics Data System to develop a plan to expand its service from Astrophysics to cover all five scientific disciplines supported by NASA’s Science Mission Directorate (Heliophysics, Planetary Science, Astrophysics, Earth Science, Biophysics). The initial phase of this expansion has now been approved and funded: to begin the expansion into Planetary Science and Heliophysics [Accomazzi 2021](https://ui.adsabs.harvard.edu/abs/2021AAS...23813203A/abstract). Over the past year we developed a census to ensure research areas such as Space Science, Astrobiology, Aeronomy and Solar Physics are properly accounted for and represented in our database. The ultimate goal of this effort is to provide the same level of support for these disciplines as ADS currently provides for Astrophysics: current and accurate coverage of both refereed and gray literature, preprints, data and software. We expect that enhanced search capabilities will be developed in due time through collaborations with partners and stakeholders. 
 
-As a recent addition to the ADS Team supporting curation efforts and assisting in collection management, this appealed to my interests as I have recently begun honing my Python skills, and learning new tools such as Jupyter Notebook and OpenRefine. Jupyter Notebook is especially useful for new Python users because it helps break up scripts into more manageable blocks (cells) and I can include my notes, findings, and documentation along the way. 
+The project described in this blog is a collaboration with NASA’s Astrobiology Habitable Environments Database (AHED) to assess the bibliographic holdings of AHED, identify those that have already been included in ADS’s holdings, flag those that are not yet included, and finally curate records and ingest those missing into ADS. This is one example of ADS’s goal to form collaborations with partners and expand access to scientific data and literature. The results of this project will be a first indication of how well the ADS covers the literature relevant for this type of research.
 
+As a recent addition to the ADS Team supporting curation efforts and assisting in collection management, this appealed to my interests as I have recently begun honing my Python skills, and learning new tools such as Jupyter Notebook and OpenRefine. Jupyter Notebook is especially useful for new Python users because it helps break up scripts into more manageable blocks (cells) and I can include my notes, findings, and documentation along the way.
+ 
 In this documentation I intend to outline the goals I established, the steps I took to accomplish them, and lessons learned. To accomplish this project, I used a combination of my own knowledge and expertise, I read API Documentation, searched online for solutions as needed, and I also collaborated with team members to debug and learn the ins and outs of the ADS API.
 
 ### Project Outline and Goals
+
 The source data used in this project was an excel spreadsheet provided of AHED’s bibliographic holdings (with metadata for Authors, Org code, Title, Journal information, and DOI if available), which was split up into three sheets by Branch (Astrophysics Branch, the Planetary Systems Branch, and the Exobiology Branch). 
 
 <b>Sample image of original excel file, showing items in three tabs for the AHED Branches</b>
 
 <img width="1004" alt="Screen Shot 2021-11-04 at 11 44 23 AM" src="https://user-images.githubusercontent.com/31739067/140366721-e2721366-94d7-4651-a06d-17e7a10483e4.png"> 
 
-The main overall goal was to match each publication with an ADS bibcode if it exists. In order to accomplish this, my team recommended I use the ADS API to match based on DOIs (for those proivded), then reference strings, and then fill in the rest by Title. I split up my overall goal into four major tasks, and for each of these phases I created a new Jupyter Notebook and outlined the steps.
+The main overall goal was to match each publication with an ADS bibcode if it exists. In order to accomplish this, my team recommended I use the ADS API to match based on DOIs (for those provided), then reference strings, and then fill in the rest by Title. I split up my overall goal into four major tasks, and for each of these phases I created a new Jupyter Notebook and outlined the steps.
 1. [(Notebook 1): Match AHED to ADS Items by DOI](#match-by-doi)
 2. [(Notebook 2): Match AHED to ADS Items by Reference Strings](#match-by-ref)
 3. [(Notebook 3): Match AHED to ADS Items by Title](#match-by-title)
@@ -34,15 +37,15 @@ Create a version of the AHED spreadsheet that has a column "bibcode" added to th
 
 <b>Step 1.1: Data Cleanup and Prep</b>
   
-After opening up a Jupyter notebook, I began by loading the excel spreadsheets and merging them as one comprehensive data frame. I decided this would be easier to handle and more efficient for getting results.
+After opening up a Jupyter notebook, I began by loading the excel spreadsheets and merging them as one comprehensive data frame. I decided this would be easier to handle and more efficient for obtaining results.
   
 ```python
 import pandas as pd
 
 # Read excel sheets
-astro_pubs = pd.read_excel("/Users/sao/Documents/Python-Projects/AHED/SpaceScienceAndAstrobiologyDivision.xlsx", sheet_name=0)
-planet_pubs = pd.read_excel("/Users/sao/Documents/Python-Projects/AHED/SpaceScienceAndAstrobiologyDivision.xlsx", sheet_name=1)
-exo_pubs = pd.read_excel("/Users/sao/Documents/Python-Projects/AHED/SpaceScienceAndAstrobiologyDivision.xlsx", sheet_name=2)
+astro_pubs = pd.read_excel("AHED/SpaceScienceAndAstrobiologyDivision.xlsx", sheet_name=0)
+planet_pubs = pd.read_excel("AHED/SpaceScienceAndAstrobiologyDivision.xlsx", sheet_name=1)
+exo_pubs = pd.read_excel("AHED/SpaceScienceAndAstrobiologyDivision.xlsx", sheet_name=2)
 
 # Combine the excel sheets into one new/big data frame
 ahed_pubs = pd.concat([astro_pubs, planet_pubs, exo_pubs], axis='index', ignore_index=True)
@@ -51,9 +54,9 @@ ahed_pubs = pd.concat([astro_pubs, planet_pubs, exo_pubs], axis='index', ignore_
 ahed_pubs.to_excel("AHED/ahed_pubs.xlsx", index=False)
 ```
 
-After creating a single data frame, I assessed the data provided and chose to use [OpenRefine](https://openrefine.org/) to clean up, transform, and normalize the data. OpenRefine is an open-source application for working with messy data. I recently attended training at a [Smithsonian Data Carpentries Workshop](https://datascience.si.edu/carpentries) where I learned about OpenRefine, its uses, and benefits for data cleanup. 
+After creating a single data frame, I assessed the data provided and chose to use [OpenRefine](https://openrefine.org/) to clean up, transform, and normalize the data. OpenRefine is an open-source application for working with noisy data. I recently attended training at a [Smithsonian Data Carpentries Workshop](https://datascience.si.edu/carpentries) where I learned about OpenRefine, its uses, and benefits for data cleanup. 
 
-Using OpenRefine, I was able to transform the journal data; normalizing publication titles, volume and issue numbers, and standardizing formatting. I even found additional DOIs that were misrepresented in the Journal field and moved them to the DOI field. In addition, I made transformations such as trimming whitespace, fixing typos as I caught them, simplifying column headers, and removing duplicate entries. The transformation and deduplication process narrowed down the AHED paper list from 892 to 797 items.
+Using OpenRefine, I was able to transform the journal data; normalizing publication titles, volume and issue numbers, and standardizing formatting. This also helped me discover additional DOIs in the Journal field. In addition, I made transformations such as trimming whitespace, fixing typos as I caught them, simplifying column headers, and removing duplicate entries. The transformation and deduplication process narrowed down the AHED paper list from 892 to 797 items.
 
   <b>Step 1.2: Isolate the list of DOIs</b>
   
@@ -76,7 +79,7 @@ print("Original paper list has", len(ahed_doi_list), "DOIs to search.")
 
   <b>Step 1.3: API Connection & Query</b>
   
-Ready to search the ADS API with 177 DOIs, I established the API connection and queried my DOIs, returning the bibcodes and DOIs matched of ADS' holdings. At first, I established a basic DOI input query, where I joined all 177 DOIs in a single string, joined by 'OR' so that the ADS API would search them all at once. This worked, however it was not the most efficient due to a character limit in the q/query. In collaboration with my team, I was able to formulate a loop through my DOI list and append the response bibcodes and DOIs to a new list ('data = []').
+Ready to search the ADS API with 177 DOIs, I established the API connection and queried my DOIs, returning the bibcodes and DOIs matched of ADS' holdings. At first, I established a basic DOI input query, where I joined all 177 DOIs in a single string, joined by 'OR' so that the ADS API would search them all at once. This worked, however it was not the most efficient due to a character limit in the query. In collaboration with my team, I was able to formulate a loop through my DOI list in batches of 20 and append the response bibcodes and DOIs to a new list ('data = []').
 
 ```python
 import requests
@@ -96,7 +99,6 @@ for i in range(0, len(ahed_doi_list), 20):
     params = {"q":query,"fl":"doi,bibcode","rows":200}
     headers = {'Authorization': 'Bearer ' + token}
     response = requests.get(url, params=params, headers=headers)
-#     print(data.text, '\n')
 
     from_solr = response.json()
     if (from_solr.get('response')):
@@ -104,7 +106,6 @@ for i in range(0, len(ahed_doi_list), 20):
         if num_docs > 0:
             for doc in from_solr['response']['docs']:
                 data.append((doc['bibcode'],doc['doi'][0]))
-#     print(data)
 
 # Create new data frame of response data
 dois_matched = pd.DataFrame(data, columns = ['bibcode','DOI'])
@@ -127,9 +128,9 @@ merged.to_excel("AHED/dois_matched.xlsx",
                   index=False)
 ```
 
-  ## <a name="match-by-ref">Goal 2 (Notebook 2): Match AHED to ADS Items by Reference Strings</a>
+  ## <a name="match-by-ref">Task 2 (Notebook 2): Match AHED to ADS Items by Reference Strings</a>
 
-My next goal was to match additional papers (without DOIs matched) by reference strings with ADS' Reference Service. The ADS Reference Service is an API endpoint that can take a query string of authors and/or journal info (publication name, volume, issue, year) and return the bibcode. 
+My next goal was to match additional papers (without DOIs matched) by reference strings with ADS Reference Service. The [ADS Reference Service]( https://github.com/adsabs/reference_service) is an API endpoint that can take a query string of authors and/or journal info (publication name, volume, issue, year) and return the bibcode if matched to an existing ADS record. 
 
 <b>Notebook 2 Outline:</b>
 <li>Step 2.1: Format file of papers into reference strings
@@ -138,7 +139,7 @@ My next goal was to match additional papers (without DOIs matched) by reference 
 
 <b>Step 2.1: Format Reference List</b>
   
-First I needed to prep the reference strings. In Goal 1/Notebook 1, I had transformed the data in OpenRefine to normalize the journal titles, volume numbers, and issue/id numbers. The Reference Service takes strings in the following format: [authors],[publication year],[journal name, vol, issue numbers]. So I started by making a new column, joining these metadata together and exporting the column/list to a text file.
+First I needed to prep the reference strings. In Goal 1/Notebook 1, I had transformed the data in OpenRefine to normalize the journal titles, volume numbers, and issue/id numbers. The Reference Service takes strings in the following format: [authors],[publication year],[journal name, vol, issue numbers]. For example, “Roser, J. E., Ricca, A., and Allamandola, L. J., 2014, ApJ, 783, 97” would be a typical reference string that the service can query. So I started to formulate these reference strings by joining these metadata fields together into a new column and exporting the column/list to a text file.
 
 ```python
 import pandas as pd
@@ -204,7 +205,7 @@ def resolve(references):
 
 ```python
 # Read my reference strings file
-references = read_file("/Users/sao/Documents/Python-Projects/AHED/ref_list.txt")
+references = read_file("AHED/ref_list.txt")
 references = [ref.replace('\n','') for ref in references]
 
 # Resolve my references, results in 'total results' list
@@ -228,7 +229,7 @@ print('Matched',len(bibcodes),'bibcodes')
 
 <b>Step 2.3: Match Bibcode/Reference Response Data to Original Paper List</b>
 
-After the API successfully found 397 bibcodes from the rest of the paper list (~650 papers), my next step was to match these back to the original AHED paper list and include as bibcodes matched thus far.
+After the API successfully found 397 bibcodes from the rest of the paper list (~650 papers), my next step was to match these back to the original AHED paper list and include as items matched thus far.
   
 ```python
 # Convert my reference results to a data frame and drop null values
@@ -258,9 +259,11 @@ merged.to_excel("AHED/refs_matched.xlsx", index=False)
 ```
 Now at a running total of approx 550 items matched, my last goal was to match any additional items I could find by Title.
 
-  ## <a name="match-by-title">Goal 3 (Notebook 3): Match AHED to ADS Items by Title</a>
+  ## <a name="match-by-title">Task 3 (Notebook 3): Match AHED to ADS Items by Title</a>
 
-My next goal was to match additional papers (without DOIs matched, nor reference strings matched) this time by Title via the ADS API. I chose to include the publication year in my query to hopefully match the most accurate results.
+My next goal was to match additional papers (without DOIs matched, nor reference strings matched) this time by Title via the ADS API. This Title matching task was mostly for publications that had incomplete metadata (like missing volume, issue, page numbers, or incorrect journal names). 
+ 
+For this task, I chose to include the publication year in my query to hopefully match the most accurate results. Therefore, a typical reference string for this task would be '(title: "1-2.4 μm Near-IR Spectrum of the Giant Planet β Pictoris b Obtained with the Gemini Planet Imager" AND year:2017)'. This can be challenging for the ADS API if the Title is not spelled correctly or has special characters. This also proved challenging where the year metadata didn’t match. Therefore, I first formatted a file of these strings (Title + Year) and queried the ADS API to match any additional existing bibcodes. After that, I took a final list of unmatched items, queried the API by individual Titles, and assessed the results manually. 
 
 <b>Notebook 3 Outline:</b>
 <li>Step 3.1: Format titles to query the ADS API
@@ -269,7 +272,7 @@ My next goal was to match additional papers (without DOIs matched, nor reference
 
 <b>Step 3.1: Format Titles List</b>
   
-From here I grabbed my running list of papers ('refs_matched' from Goal 2), isolated the rows that have no bibcode yet, and formulate query strings of Title + Year.
+From here I grabbed my running list of papers ('refs_matched' from Goal 2), isolated the rows that have no bibcode yet, and formulate query strings of 'Title + Year'.
   
 ```python
 import pandas as pd
@@ -313,7 +316,6 @@ for i in range(0, len(titles), 25):
     params = {"q":query,"fl":"title,bibcode","rows":200}
     headers = {'Authorization': 'Bearer ' + token}
     response = requests.get(url, params=params, headers=headers)
-#     print(data.text, '\n')
 
     from_solr = response.json()
     if (from_solr.get('response')):
@@ -321,14 +323,13 @@ for i in range(0, len(titles), 25):
         if num_docs > 0:
             for doc in from_solr['response']['docs']:
                 data.append((doc['bibcode'],doc['title'][0]))
-#     print(data)
 
 titles_matched = pd.DataFrame(data, columns = ['bibcode','TITLE'])
 
 ```
 <b>Step 3.3: Match Bibcode/Title Response Data to Original Paper List</b>
   
-Finally, I was able to merge the new titles & bibcodes to my running list of matches ('refs_matched')
+Finally, I was able to merge the new titles & bibcodes to my running list of matches ('refs_matched').
   
 ```python
 # Merge/Join new table to original, joined on 'TITLE'
@@ -346,7 +347,7 @@ merged.to_excel("AHED/final_matched_2.xlsx", index=False)
 ```
 With this merge, my total came up to about 692 items matched out of a potential 797. After some analysis of what was left unmatched, I found quite a few discrepancies in the 'Year' metadata, as well as 'Title' mismatches (i.e. typos in the metadata, titles changed during publication, etc.) so when I searched again by Title alone, I ended up finding an additional ~40 or so papers that matched ADS holdings, bringing my final total to 731 items.
 
-  ## <a name="ads-libs">Goal 4 (Notebook 4): Curate missing items and create ADS Libraries</a>
+  ## <a name="ads-libs">Task 4 (Notebook 4): Curate missing items and create ADS Libraries</a>
 
 After successfully identifying as many bibcodes as I could match between AHED and ADS, I grabbed my full list of bibcodes and I made another ADS Library of them, which can be accessed [here](https://ui.adsabs.harvard.edu/user/libraries/1gM2Y7nVSv-POu2lanjJ6g). 
   
@@ -376,11 +377,11 @@ print(response.status_code)
 
 ## Lessons Learned
 - Using OpenRefine to do the bulk of your data prep and cleanup was a great advantage
-- Try to save fewer files; Exporting/importing new csvs/files with small tweeks can disrupt the flow of the script and create a bunch of extra files that will clutter your documents.
+- Try to save fewer files; Exporting/importing new csvs/files with small tweaks can disrupt the flow of the script and create a bunch of extra files that will clutter your documents.
 - Look for more Python ways of measuring my progress - how many bibcodes matched, counting duplicates vs non-duplicates
 - Look for ways to measure accuracy of bibcode matching - use 'score' field in ADS API.
 - Practice using loops and functions for greater efficiency
 
 ## Results and Conclusions
 
-Overall, I was able to match the majority (about 92%) of publications from the AHED list to bibcodes in ADS. Only a handful of records needed to be further searched and curated for inclusion in the collections. The ADS API was impressively accurate in returning appropriate bibcodes with each task I completed. There were even times when I thought ADS had matched the wrong bibcode, until further investigation showed me that the metadata was poor or incomplete (title, journal, or year differences). This project was an excellent way to put my Python, data, and librarianship skills into practice, and to get acquainted with all of ADS' API services.
+Overall, I was able to match the majority (about 92%) of publications from the AHED list to bibcodes in ADS. Only a handful of records needed to be further searched and curated for inclusion in the collections. The ADS API was impressively accurate in returning appropriate bibcodes with each task I completed. There were even times when I thought ADS had matched the wrong bibcode, until further investigation showed me that the provided metadata was inconsistent or incomplete (title, journal, or year differences). As such, this project also illustrated the general challenge involved with matching reference data to existing publications. The reference matching software has to be flexible enough to deal with small inaccuracies, but not to be too lenient (which would generate a high probability of false positives). The ADS Reference Service does well in this regard, and includes a ‘score’ quality that can be used to assess the accuracy of matches. This project was an excellent way to put my Python, data, and librarianship skills into practice, and to get acquainted with all of ADS' API services.
