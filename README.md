@@ -272,7 +272,7 @@ For this task, I chose to include the publication year in my query to hopefully 
 
 <b>Step 3.1: Format Titles List</b>
   
-From here I grabbed my running list of papers ('refs_matched' from Goal 2), isolated the rows that have no bibcode yet, and formulate query strings of 'Title + Year'.
+From here I grabbed my running list of papers ('refs_matched' from Task 2), isolated the rows that have no bibcode yet, and formulated query strings of 'Title + Year'.
   
 ```python
 import pandas as pd
