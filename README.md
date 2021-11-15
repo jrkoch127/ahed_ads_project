@@ -1,4 +1,4 @@
-# AHED-ADS Project
+# ARC/SSAD-ADS Project
 Includes documentation, Jupyter notebooks and files for AHED-ADS Project of matching AHED papers to ADS papers.
 
 ## Identifying ADS Bibliographic Gaps Against NASA Astrobiology Habitable Environments Database (AHED)
