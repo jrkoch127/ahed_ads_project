@@ -22,13 +22,9 @@ The source data used in this project was an Excel spreadsheet provided of ARC/SS
 <br>
 
 The main overall goal was to check if the publication is present in the ADS database, and if so, match it with an ADS bibcode. In order to accomplish this, I used the ADS API to match based on DOIs (for those provided), then reference strings, and then fill in the rest by title. I split up my overall goal into four major tasks, and for each of these phases I created a new Jupyter Notebook and outlined the steps.
-1. [Task 1: Match ARC/SSAD to ADS Items by DOI](#match-by-doi)
-2. [Task 2: Match ARC/SSAD to ADS Items by Reference Strings](#match-by-ref)
-3. [Task 3: Match ARC/SSAD to ADS Items by Title](#match-by-title)
-4. [Task 4: Curate missing items and create ADS Libraries](#ads-libs)
 
 <details>
- <summary>Task 1 Details</summary>
+ <summary>Task 1 Details: Match ARC/SSAD to ADS Items by DOI</summary>
  
 ## <a name="match-by-doi">Task 1: Match ARC/SSAD to ADS Items by DOI</a>
 
@@ -140,6 +136,9 @@ merged.to_excel("AHED/dois_matched.xlsx",
 ```
  </details>
  
+ <details>
+ <summary>Task 2 Details: Match ARC/SSAD to ADS Items by Reference Strings</summary>
+
 ## <a name="match-by-ref">Task 2: Match ARC/SSAD to ADS Items by Reference Strings</a>
 
 Code snippets in this section are taken from [ARC/SSAD Project Notebook 2](https://github.com/jrkoch127/ahed_ads_project/blob/main/AHED-2-Ref%20API.ipynb).
@@ -150,9 +149,6 @@ My next goal was to match papers not matched by DOI in the previous task using t
 * Step 2.1: Format file of papers into reference strings
 * Step 2.2: Query the Reference API with reference strings, return bibcodes
 * Step 2.3: Match the bibcodes back to the paper list
-
-<details>
- <summary>Task 2 Details</summary>
  
 <b>Step 2.1: Format Reference List</b>
   
@@ -281,7 +277,10 @@ merged.to_excel("AHED/refs_matched.xlsx", index=False)
 Now at a running total of approx 550 items matched, my last goal was to match any additional items I could find by Title.
 
 </details>
- 
+
+<details>
+ <summary>Task 3 Details: Match ARC/SSAD to ADS Items by Title</summary>
+
 ## <a name="match-by-title">Task 3: Match ARC/SSAD to ADS Items by Title</a>
 
 Code snippets in this section are taken from [ARC/SSAD Project Notebook 3](https://github.com/jrkoch127/ahed_ads_project/blob/main/AHED-3-Titles%20API.ipynb).
@@ -294,9 +293,6 @@ For this task, I chose to include the publication year for most accurate results
 * Step 3.1: Format titles to query the ADS API
 * Step 3.2: Query the ADS API with titles, return bibcodes
 * Step 3.3: Match the bibcodes back to the paper list
-
-<details>
- <summary>Task 3 Details</summary>
  
 <b>Step 3.1: Format Titles List</b>
   
@@ -380,6 +376,9 @@ With this merge, my total came up to about 692 items matched out of a potential 
 
  </details>
  
+ <details>
+ <summary>Task 4 Details: Curate missing items and create ADS Libraries</summary>
+ 
 ## <a name="ads-libs">Task 4: Curate missing items and create ADS Libraries</a>
 
 Code snippets in this section are taken from [ARC/SSAD Project Notebook 4](https://github.com/jrkoch127/ahed_ads_project/blob/main/AHED-4-Libraries.ipynb).
@@ -387,9 +386,6 @@ Code snippets in this section are taken from [ARC/SSAD Project Notebook 4](https
 After successfully identifying as many bibcodes as I could match between ARC/SSAD and ADS, I grabbed my full list of bibcodes and I made another ADS Library of them, which can be accessed [here](https://ui.adsabs.harvard.edu/user/libraries/1gM2Y7nVSv-POu2lanjJ6g). 
   
 My final task for this project was to identify, locate, and curate the last ~70 ARC/SSAD records missing from the ADS holdings. This was a manual process of searching the web with the metadata provided, locating the applicable DOI, and curating ADS records from there. I was able to identify and locate approximately 54 publications, plus records for individual chapters for two I identified as books. As a result, the ADS team ingested these new records and I again created a library of those (102 total), which can be found [here](https://ui.adsabs.harvard.edu/user/libraries/HkCPGwYhSSWpzvJW_gxd3w).
-
-<details>
- <summary>Task 4 Details</summary>
  
 ```
 python
